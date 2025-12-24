@@ -3,34 +3,34 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace LWBinarySerializer
+namespace LWSerializer
 {
-    public unsafe class NativeBinaryReader : IDisposable
+    public unsafe class LwBinaryReader : IDisposable
     {
         private IntPtr _array;
         private long _position;
         private GCHandle _handle;
 
         #region constructor
-        public NativeBinaryReader(NativePointer<byte> span)
+        public LwBinaryReader(LwNativePointer<byte> span)
         {
             _array = span;
             _position = 0;
         }
         
-        public NativeBinaryReader(IntPtr binaryData)
+        public LwBinaryReader(IntPtr binaryData)
         {
             _array = binaryData;
             _position = 0;
         }
 
-        public NativeBinaryReader(byte[] binaryData)
+        public LwBinaryReader(byte[] binaryData)
         {
             _handle = GCHandle.Alloc(binaryData, GCHandleType.Pinned);
             _array = _handle.AddrOfPinnedObject();
         }
         
-        ~NativeBinaryReader()
+        ~LwBinaryReader()
         {
             _dispose();
         }
@@ -108,7 +108,7 @@ namespace LWBinarySerializer
             str = Encoding.UTF8.GetString(srcPtr, byteCount);
         }
 
-        public void ReadRef(INativeBinaryable binaryable)
+        public void ReadRef(ILwSerializable binaryable)
         {
             binaryable.OnNativeRead(this);   
         }

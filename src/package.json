@@ -1,0 +1,19 @@
+{
+  "name": "com.hoguma.fwserializer",
+  "version": "1.0.0",
+  "displayName": "FWSerializer",
+  "description": ".net 환경에서 값을 복사하여 바이너리로 변경하는 직렬화 라이브러리입니다.",
+  "unity": "2021.3",
+  "unityRelease": "0f1",
+  "author": {
+    "name": "hoguma",
+    "url": "https://github.com/hogumas/LWBinarySerializer.git"
+  },
+  "keywords": [
+    "utility",
+    "tools",
+    "serializer"
+  ],
+  "dependencies": {
+  }
+}

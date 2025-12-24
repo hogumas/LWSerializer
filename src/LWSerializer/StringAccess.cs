@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LWBinarySerializer
+namespace LWSerializer
 {
     /// <summary> Hash를 사용해 문자열을 불러오거나 저장합니다. 직렬화시에도 Hash는 유지되나, Hash에 해당하는 문자열을 따로 저장하고, 불러올때 StringAccess.Prepare 호출을 해줘야합니다</summary>
     public struct StringAccess : IEquatable<StringAccess>

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace LWBinarySerializer
+namespace LWSerializer
 {
     /// <summary>
     /// 변수를 바이너리 데이터로 변경하여 작성하는데 사용되는 구조체 입니다
@@ -11,7 +11,7 @@ namespace LWBinarySerializer
     /// 구조체이지만 참조형식처럼 사용해도 됩니다
     /// MAX 2GB
     /// </summary>
-    public unsafe class NativeBinaryWriter : IDisposable
+    public unsafe class LwBinaryWriter : IDisposable
     {
         private const uint MAXCAPACITY = int.MaxValue-1;
         private const uint CacheLineSize = 64;
@@ -23,14 +23,14 @@ namespace LWBinarySerializer
         public int Length => (int)_length;
         public int Position => (int)_length;
         
-        public NativeBinaryWriter(long capacity)
+        public LwBinaryWriter(long capacity)
         {
             _array = Marshal.AllocHGlobal(new IntPtr(capacity));
             _capacity = (uint)capacity;
             _length = 0;
         }
 
-        ~NativeBinaryWriter()
+        ~LwBinaryWriter()
         {
             _dispose();
         }
@@ -39,9 +39,9 @@ namespace LWBinarySerializer
         /// Writer에 추가적인 쓰기작업이 발생할경우 반환한 주소값이 유효하지않게 될 수 있습니다.
         /// </summary>
         /// <returns></returns>
-        public NativePointer<byte> ToPtr()
+        public LwNativePointer<byte> ToPtr()
         {
-            return new NativePointer<byte>(_array);
+            return new LwNativePointer<byte>(_array);
         }
         
         #region BeginWrite / EnsureCapacity
@@ -138,7 +138,7 @@ namespace LWBinarySerializer
             }
         }
 
-        public void WriteRef(INativeBinaryable binaryable)
+        public void WriteRef(ILwSerializable binaryable)
         {
             binaryable.OnNativeWrite(this);
         }
