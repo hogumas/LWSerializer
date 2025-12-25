@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -40,27 +42,41 @@ namespace LWSerializer
         {
             _position = position;
         }
+        
+        /// <summary>
+        /// Writer에 추가적인 쓰기작업이 발생할경우 반환한 주소값이 유효하지않게 될 수 있습니다.
+        /// </summary>
+        /// <returns></returns>
+        public LwNativePointer<byte> ToPtr()
+        {
+            return new LwNativePointer<byte>(_array);
+        }
+        
         #region BeginRead
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* BeginRead(int byteLength) => BeginRead((uint)byteLength);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* BeginRead(uint byteLength)
         {
-            // 1. 쓰기 때와 똑같은 규칙으로 정렬 단위 결정
             uint alignment = byteLength >= 8 ? 8 : byteLength;
             if ((alignment & (alignment - 1)) != 0) alignment = 1;
             long currentPos = _position;
-            // 2. 패딩을 포함한 시작 위치 계산 (점프!)
             long alignedPos = (currentPos + (alignment - 1)) & ~(alignment - 1);
-            /*// 3. 유효성 검사 (데이터가 충분한지)
-            if (alignedPos + byteLength > length)
-                throw new IndexOutOfRangeException();*/
             _position = alignedPos + byteLength;
             return (byte*)_array + alignedPos;
         }
-
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void* Peek(int byteLengthint)
+        {
+            uint byteLength = (uint)byteLengthint;
+            uint alignment = byteLength >= 8 ? 8 : byteLength;
+            if ((alignment & (alignment - 1)) != 0) alignment = 1;
+            long currentPos = _position;
+            long alignedPos = (currentPos + (alignment - 1)) & ~(alignment - 1);
+            return (byte*)_array + alignedPos;
+        }
         #endregion
 
         public void Read<T1>(out T1 _1) where T1 : unmanaged
@@ -68,18 +84,36 @@ namespace LWSerializer
             _1 = *(T1*)BeginRead(Unsafe.SizeOf<T1>());
         }
 
+        public T Read<T>() where T : unmanaged
+        {
+            return *(T*)BeginRead(Unsafe.SizeOf<T>());
+        }
+
         public void ReadPadding(int byteLen)
         {
             BeginRead(byteLen);
         }
 
-        /// <summary> 반환 Span값은 참조하지말고 복사해서 사용하세요 </summary>
-        public void Read<T>(out ReadOnlySpan<T> result) where T : unmanaged
+        public int PeekSpanLength<T>() where T : unmanaged
         {
+            return Peek<int>();
+        }
+        
+        public void ReadSpan<T>(void* dest) where T : unmanaged
+        {
+            if (dest == null)
+                throw new ArgumentNullException();
             Read(out int length);
             int byteLen = length * Unsafe.SizeOf<T>();
-            void* dataPtr = BeginRead(byteLen);
-            result = new ReadOnlySpan<T>(dataPtr, byteLen);
+            void* source = BeginRead(byteLen);
+            Unsafe.CopyBlock(dest, source, (uint)byteLen);
+        }
+        
+        public void ReadSpan<T>(Span<T> dest) where T : unmanaged
+        {
+            if (dest == null) 
+                throw new ArgumentNullException();
+            ReadSpan<T>(Unsafe.AsPointer(ref dest.GetPinnableReference()));
         }
 
         public void Read<T>(out T[] result) where T : unmanaged
@@ -108,11 +142,88 @@ namespace LWSerializer
             str = Encoding.UTF8.GetString(srcPtr, byteCount);
         }
 
+        public void ReadRef<T>(out T[] result) where T : ILwSerializable
+        {
+            Read(out int length);
+            result = new  T[length];
+            for (int i = 0; i < length; i++)
+            {
+                var instance = Activator.CreateInstance<T>();
+                ReadRef(instance);
+                result[i] = instance;
+            }
+        }
+        
         public void ReadRef(ILwSerializable binaryable)
         {
             binaryable.OnNativeRead(this);   
         }
+        
+        #region Dic
+        public void Read<K, V>(out Dictionary<K, V> dic)  
+            where K : unmanaged
+            where V : unmanaged
+        {
+            dic = new Dictionary<K, V>();
+            Read(out int count);
+            for (int i = 0; i < count; i++)
+            {
+                Read(out K key, out V value);
+                dic.Add(key, value);
+            }
+        }
+        
+        public void Read<V>(out Dictionary<string, V> dic) where V : unmanaged
+        {
+            dic = new Dictionary<string, V>();
+            Read(out int count);
+            for (int i = 0; i < count; i++)
+            {
+                Read(out string key);
+                Read(out V value);
+                dic.Add(key, value);
+            }
+        }
+        
+        public void ReadRef<K, V>(out Dictionary<K, V> dic)  
+            where K : unmanaged
+            where V : ILwSerializable
+        {
+            dic = new Dictionary<K, V>();
+            Read(out int count);
+            for (int i = 0; i < count; i++)
+            {
+                Read(out K key);
+                var nvalue = Activator.CreateInstance<V>();
+                ReadRef(nvalue);
+                dic.Add(key, nvalue);
+            }
+        }
+        
+        public void ReadRef<V>(out Dictionary<string, V> dic) where V : ILwSerializable
+        {
+            dic = new Dictionary<string, V>();
+            Read(out int count);
+            for (int i = 0; i < count; i++)
+            {
+                Read(out string key);
+                var nvalue = Activator.CreateInstance<V>();
+                ReadRef(nvalue);
+                dic.Add(key, nvalue);
+            }
+        }
+        #endregion
 
+        public T Peek<T>() where T : unmanaged
+        {
+            return *(T*)Peek(Unsafe.SizeOf<T>());
+        }
+        
+        public ulong GetXxHash64(int seed)
+        {
+            return XxHash64.HashToUInt64(this.ToPtr().AsSpan((int)_position), seed);
+        }
+        
         public void Dispose()
         {
             _dispose();

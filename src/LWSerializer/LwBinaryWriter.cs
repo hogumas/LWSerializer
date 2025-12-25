@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -137,6 +139,15 @@ namespace LWSerializer
                 Unsafe.CopyBlock(destPtr, srcPtr, (uint)byteLen);
             }
         }
+        
+        public void WriteRef<T>(T[] datas) where T : ILwSerializable
+        {
+            Write(datas.Length);
+            if (datas.Length == 0)
+                return;
+            foreach (var data in datas)
+                WriteRef(data);
+        }
 
         public void WriteRef(ILwSerializable binaryable)
         {
@@ -159,6 +170,54 @@ namespace LWSerializer
             }
         }
 
+        #region Dic
+        public void Write<K, V>(Dictionary<K, V> dic)  
+            where K : unmanaged
+            where V : unmanaged
+        {
+            Write(dic.Count);
+            foreach (var kv in dic)
+                Write(kv.Key, kv.Value);
+        }
+        
+        public void Write<V>(Dictionary<string, V> dic) where V : unmanaged
+        {
+            Write(dic.Count);
+            foreach (var kv in dic)
+            {
+                Write(kv.Key);
+                Write(kv.Value);
+            }
+        }
+        
+        public void WriteRef<K, V>(Dictionary<K, V> dic)  
+            where K : unmanaged
+            where V : ILwSerializable
+        {
+            Write(dic.Count);
+            foreach (var kv in dic)
+            {
+                Write(kv.Key);
+                WriteRef(kv.Value);
+            }
+        }
+        
+        public void WriteRef<V>(Dictionary<string, V> dic) where V : ILwSerializable
+        {
+            Write(dic.Count);
+            foreach (var kv in dic)
+            {
+                Write(kv.Key);
+                WriteRef(kv.Value);
+            }
+        }
+        #endregion
+        
+        public ulong GetXxHash64(int seed)
+        {
+            return XxHash64.HashToUInt64(this.ToPtr().AsSpan((int)_length), seed);
+        }
+        
         public byte[] ToArray()
         {
             return ToPtr().AsSpan((int)_length).ToArray();
