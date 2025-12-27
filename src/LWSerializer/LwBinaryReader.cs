@@ -142,6 +142,17 @@ namespace LWSerializer
             str = Encoding.UTF8.GetString(srcPtr, byteCount);
         }
 
+        public void Read(out string[] strArray)
+        {
+            Read(out int length);
+            strArray = new string[length];
+            for (int i = 0; i < length; i++)
+            {
+                Read(out string str);
+                strArray[i] = str;
+            }
+        }
+
         public void ReadRef<T>(out T[] result) where T : ILwSerializable
         {
             Read(out int length);

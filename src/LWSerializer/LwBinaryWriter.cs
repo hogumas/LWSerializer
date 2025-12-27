@@ -176,7 +176,19 @@ namespace LWSerializer
                 }
             }
         }
-
+        
+        public void Write(string[] data)
+        {
+            if (data == null)
+            {
+                Write(0);
+                return;
+            }
+            Write(data.Length);
+            foreach(string str in data)
+                Write(str);
+        }
+        
         #region Dic
         public void Write<K, V>(Dictionary<K, V> dic)  
             where K : unmanaged
