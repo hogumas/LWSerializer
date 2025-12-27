@@ -24,6 +24,13 @@ namespace LWSerializer
 
         public int Length => (int)_length;
         public int Position => (int)_length;
+
+        public LwBinaryWriter()
+        {
+            _array = Marshal.AllocHGlobal(new IntPtr(CacheLineSize));
+            _capacity = CacheLineSize;
+            _length = 0;
+        }
         
         public LwBinaryWriter(long capacity)
         {
