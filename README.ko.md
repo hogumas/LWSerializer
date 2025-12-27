@@ -5,38 +5,42 @@
 ![.NET Standard 2.1](https://img.shields.io/badge/.NET%20Standard-2.1-orange)
 ![.NET](https://img.shields.io/badge/.NET-8.0%2B-blueviolet)
 
-### LWSerializer is a **lightweight, high-performance binary serialization library** for the .NET environment.
-It processes data with minimal overhead through direct memory copying and allows users to manually configure serialization order and padding. It is highly optimized for game development and high-performance server environments.
+
+### LWSerializer는 .NET 환경을 위한 **경량 고성능 바이너리 직렬화 라이브러리**입니다.
+메모리 직접복사 방식을 통해 최소한의 오버헤드로 데이터를 처리하며, 직렬화 순서나 Padding값을 직접 설정할 수 있습니다 
+게임 개발 및 고성능 서버 환경에 최적화되어 있습니다.
+
+
 
 ## Key Features
-* **Performance**: Provides faster serialization/deserialization speeds than `MemoryPack`, which is already known for its performance.
-* **Simple Usage**: Immediate integration via `LwBinaryWriter` and `LwBinaryReader` without complex configurations.
-* **Manual Ordering**: Users can directly control the serialization order, allowing for flexible protocol design.
-* **Padding**: Supports padding to prepare for future struct changes, maintaining backward compatibility even when data structures are expanded.
+* **Performance**: 이미 빠른 직렬화 API `MemoryPack`을 보다 빠른 직렬화/역직렬화 속도를 제공합니다.
+* **Simple Use**: 복잡한 설정 없이 `LwBinaryWriter/Reader`를 통해 즉시 사용 가능합니다.
+* **Manual Ordering**: 데이터의 직렬화 순서를 사용자가 직접 제어할 수 있어 유연한 프로토콜 설계가 가능합니다.
+* **Padding**: 구조체 변경에 대비한 Padding 기능을 지원하여, 데이터 구조 확장 시에도 하위 호환성을 유지할 수 있습니다.
 * **Memory Efficiency**:
-    * Supports serialization for all `unmanaged` structs.
-    * Safe and efficient memory access through memory aliasing handling.
-    * Capable of serializing large datasets up to **2GB**.
-* **Collection Support**: Native support for major generic collections such as `List<T>` and `Dictionary<TKey, TValue>`.
-* **Compatibility**: Supports .NET Standard 2.1, making it compatible with both Unity and modern .NET environments.
+    * 모든 `unmanaged` 구조체 직렬화 지원
+    * Memory Aliasing 대응을 통한 안전하고 효율적인 메모리 접근
+    * 최대 **2GB** 크기의 대용량 데이터 직렬화 가능
+* **Collection Support**: `List<T>`, `Dictionary<TKey, TValue>` 등 주요 제네릭 컬렉션을 기본 지원합니다.
+* **Compatibility**: .NET Standard 2.1 지원으로 Unity 및 최신 .NET 환경 모두에서 사용 가능합니다.
+
+
 
 ## Performance Comparison
-LWSerializer uses a direct memory copy mechanism, making it faster than existing libraries and ensuring zero GC (Garbage Collection).
-
+LWSerializer는 직접적인 메모리 복사 메커니즘을 사용하여 기존의 라이브러리들보다 빠르고 GC가 발생하지않습니다
 | Library | Performance | Methodology |
 | :--- | :---: | :--- |
-| **LWSerializer** | **Extremely High** | **Direct Memory Copy / Low Overhead** |
-| MemoryPack | Very High | Code Generation / Zero-reflection |
-| Protobuf-net | High | Contract-Based |
-| Json.NET | Medium | Text-Based |
+| **LWSerializer** | Very High | **Direct Memory Copy / Low Overhead** |
+| MemoryPack | Very High | Zero-order Reflection / Code Gen |
+| Protobuf-net | High | Contract Based |
+| Json.NET | Medium | Text Based |
 
-*Benchmarking results will be provided soon.*
+벤치마킹은 추후 제공예정입니다
 
 
 
 ## Usage
-0. Simple Serialization
-Example of basic serialization using `LwUtility.cs`
+0. 'LwUtility.cs' 를 사용하여 간단하게 직렬화를 하는 예제입니다
 ```csharp
 var bytes = LwUtility.To("hello world");
 var data = LwUtility.From(bytes);
@@ -44,8 +48,8 @@ var hash = LwUtility.ToXxHash64(bytes);
 
 
 ```
-1. Unmanaged Structs
-Example of converting an unmanaged struct to binary and restoring it:
+
+2. `unmanaged` 구조체를 바이너리로 변환하고 다시 복구하는 예제입니다.
 ```csharp
         public struct ExampleStruct
         {
@@ -76,9 +80,8 @@ Example of converting an unmanaged struct to binary and restoring it:
 
 
 ```
+2. `managed` 구조체를 바이너리로 변환하고 다시 복구하는 예제입니다
 
-2. Managed Objects (Classe)
-Example of converting a managed object to binary and restoring it by implementing ILwSerializable:
 ```csharp
         public class ExampleClass : ILwSerializable
         {
