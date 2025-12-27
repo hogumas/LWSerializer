@@ -232,9 +232,9 @@ namespace LWSerializer
         }
         #endregion
         
-        public ulong GetXxHash64(int seed)
+        public ulong GetXxHash64(long seed)
         {
-            return XxHash64.HashToUInt64(this.ToPtr().AsSpan((int)_length), seed);
+            return LwUtility.ToXxHash64(ToPtr(), (int)_length, seed);
         }
         
         public byte[] ToArray()
@@ -256,6 +256,11 @@ namespace LWSerializer
                 _array = IntPtr.Zero;
                 _length = _capacity = 0;
             }
+        }
+
+        public void SetLength(int length)
+        {
+            _length = length;
         }
         
         #region T1....T7

@@ -230,9 +230,9 @@ namespace LWSerializer
             return *(T*)Peek(Unsafe.SizeOf<T>());
         }
         
-        public ulong GetXxHash64(int seed)
+        public ulong GetXxHash64(long seed)
         {
-            return XxHash64.HashToUInt64(this.ToPtr().AsSpan((int)_position), seed);
+            return LwUtility.ToXxHash64(ToPtr(), (int)_position, seed);
         }
         
         public void Dispose()

@@ -2,16 +2,14 @@
 
 namespace LWBinarySerializer
 {
-    
-    
     public static class Example_Unmanaged
     {
         public struct ExampleStruct
         {
-            private int _firstInt;
-            private float _firstFloat;
-            private bool _bool;
-            private decimal _decimal;
+            public int m_int;
+            public float m_float;
+            public bool m_bool;
+            public decimal m_decimal;
         }
         
         public static byte[] Write(ExampleStruct exampleStruct)
@@ -33,24 +31,25 @@ namespace LWBinarySerializer
             return result;
         }
     }
+    
     public static class Example_Managed
     {
         public class ExampleClass : ILwSerializable
         {
-            private int _firstInt;
-            private float _firstFloat;
-            private string[] _arr;
+            public int m_int;
+            public float m_float;
+            public string[] m_arr;
             
             void ILwSerializable.OnNativeWrite(LwBinaryWriter writer)
             {
-                writer.Write(_firstInt, _firstFloat);
-                writer.Write(_arr);
+                writer.Write(m_int, m_float);
+                writer.Write(m_arr);
             }
 
             void ILwSerializable.OnNativeRead(LwBinaryReader reader)
             {
-                reader.Read(out _firstInt, out _firstFloat);
-                reader.Read(out _arr);
+                reader.Read(out m_int, out m_float);
+                reader.Read(out m_arr);
             }
         }
         
