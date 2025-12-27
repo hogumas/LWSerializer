@@ -3,7 +3,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![.NET Standard 2.1](https://img.shields.io/badge/.NET%20Standard-2.1-orange)
 ![.NET](https://img.shields.io/badge/.NET-8.0%2B-blueviolet)
-![Platform](https://img.shields.io/badge/Platform-Cross--platform-lightgrey)
 
 
 ### LWSerializer는 .NET 환경을 위한 **경량 고성능 바이너리 직렬화 라이브러리**입니다.
@@ -39,18 +38,24 @@ LWSerializer는 직접적인 메모리 복사 메커니즘을 사용하여 기�
 
 
 
-
-
 ## Usage
+0. 'LwUtility.cs' 를 사용하여 간단하게 직렬화를 하는 예제입니다
+```csharp
+var bytes = LwUtility.To("hello world");
+var data = LwUtility.From(bytes);
+var hash = LwUtility.ToXxHash64(bytes);
 
-1. `unmanaged` 구조체를 바이너리로 변환하고 다시 복구하는 예제입니다.
+
+```
+
+2. `unmanaged` 구조체를 바이너리로 변환하고 다시 복구하는 예제입니다.
 ```csharp
         public struct ExampleStruct
         {
-            private int _firstInt;
-            private float _firstFloat;
-            private bool _bool;
-            private decimal _decimal;
+            public int m_int;
+            public float m_float;
+            public bool m_bool;
+            public decimal m_decimal;
         }
         
         public static byte[] Write(ExampleStruct exampleStruct)
@@ -71,26 +76,28 @@ LWSerializer는 직접적인 메모리 복사 메커니즘을 사용하여 기�
             }
             return result;
         }
+
+
 ```
 2. `managed` 구조체를 바이너리로 변환하고 다시 복구하는 예제입니다
 
 ```csharp
         public class ExampleClass : ILwSerializable
         {
-            private int _firstInt;
-            private float _firstFloat;
-            private string[] _arr;
+            public int m_int;
+            public float m_float;
+            public string[] m_arr;
             
             void ILwSerializable.OnNativeWrite(LwBinaryWriter writer)
             {
-                writer.Write(_firstInt, _firstFloat);
-                writer.Write(_arr);
+                writer.Write(m_int, m_float);
+                writer.Write(m_arr);
             }
 
             void ILwSerializable.OnNativeRead(LwBinaryReader reader)
             {
-                reader.Read(out _firstInt, out _firstFloat);
-                reader.Read(out _arr);
+                reader.Read(out m_int, out m_float);
+                reader.Read(out m_arr);
             }
         }
         
@@ -112,4 +119,6 @@ LWSerializer는 직접적인 메모리 복사 메커니즘을 사용하여 기�
             }
             return result;
         }
+
+
 ```
