@@ -5,7 +5,7 @@ namespace LWSerializer
 {
     public static class LwUtility
     {
-        private static LwBinaryWriter _sharedWriter = new();
+        private static LwBinaryWriter _sharedWriter = new LwBinaryWriter();
         
         
         /// <summary> ILwSerializable 객체를 바이너리 배열로 반환합니다. </summary>
