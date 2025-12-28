@@ -71,18 +71,10 @@ namespace LWSerializer
             // 2. 정렬된 위치(Aligned Position) 계산 (비트 연산 최적화)
             // 공식: (현재위치 + (정렬단위 - 1)) & ~(정렬단위 - 1)
             long alignedPos = (currentPos + (alignment - 1)) & ~(alignment - 1);
-
-            // 3. 필요한 총 크기 = (패딩 포함된 위치 - 현재 위치) + 실제 데이터 길이
             long padding = alignedPos - currentPos;
             long totalRequired = padding + byteLength;
-            
             CheckAndEnsureCapacity(_length + totalRequired);
-
-            // 4. 커서(_length)를 실제 데이터 끝으로 이동
-            // (중간의 padding 공간은 건너뜀)
             _length += totalRequired;
-
-            // 5. 정렬이 맞춰진 시작 주소 반환
             return (byte*)_array + alignedPos;
         }
         
