@@ -25,8 +25,8 @@ LWSerializer uses a direct memory copy mechanism, making it faster than existing
 
 | Library | Performance | Methodology |
 | :--- | :---: | :--- |
-| **LWSerializer** | **Extremely High** | **Direct Memory Copy / Low Overhead** |
-| MemoryPack | Very High | Code Generation / Zero-reflection |
+| **LWSerializer** | **Very High** | **Direct Memory Copy** |
+| MemoryPack | Very High | Code Generation / Direct Memory Copy |
 | Protobuf-net | High | Contract-Based |
 | Json.NET | Medium | Text-Based |
 
