@@ -84,6 +84,12 @@ namespace LWSerializer
             _1 = *(T1*)BeginRead(Unsafe.SizeOf<T1>());
         }
 
+        public void Read<T>(out ILwSerializable _1) where T : ILwSerializable
+        {
+            _1 = default;
+            _1.OnNativeRead(this);
+        }
+
         public T Read<T>() where T : unmanaged
         {
             return *(T*)BeginRead(Unsafe.SizeOf<T>());

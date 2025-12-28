@@ -107,6 +107,11 @@ namespace LWSerializer
         {
             (*(T*)BeginWrite(Unsafe.SizeOf<T>())) = data;
         }
+
+        public void Write(ILwSerializable data)
+        {
+            data.OnNativeWrite(this);
+        }
         
         /// <summary> 1byte로 채워지는 여유 공간을 작성합니다</summary>
         public void WritePadding(int byteLen)
