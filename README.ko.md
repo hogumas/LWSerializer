@@ -30,8 +30,8 @@
 LWSerializer는 직접적인 메모리 복사 메커니즘을 사용하여 기존의 라이브러리들보다 빠르고 GC가 발생하지않습니다
 | Library | Performance | Methodology |
 | :--- | :---: | :--- |
-| **LWSerializer** | Very High | **Direct Memory Copy / Low Overhead** |
-| MemoryPack | Very High | Zero-order Reflection / Code Gen |
+| **LWSerializer** | Very High | **Direct Memory Copy** |
+| MemoryPack | Very High | Code Gen / Direct Memory Copy |
 | Protobuf-net | High | Contract Based |
 | Json.NET | Medium | Text Based |
 
