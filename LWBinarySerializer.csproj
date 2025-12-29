@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Hashing" Version="10.0.1" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.IO.Hashing">
+      <HintPath>src\Plugins\System.IO.Hashing.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
