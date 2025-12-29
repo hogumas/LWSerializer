@@ -3,14 +3,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using LWSerializer.Formatters;
+
+#if UNITY_5_3_OR_NEWER || UNITY_2017_1_OR_NEWER
+using LWSerializer.Formatters.Unity;
+#endif
 
 namespace LWSerializer
 {
     public static class LWFormatterProvider
     {
         private static readonly Dictionary<Type, bool> _unmanagedType = new Dictionary<Type, bool>();
-        
+      
         public static ILWFormatter<T> GetFormatter<T>()
         {
             var type = typeof(T);
@@ -22,28 +27,37 @@ namespace LWSerializer
             //LwNativeMemory Type
             
             
-            // unmanaged Type
-            if (IsUnmanagedType<T>()) 
-                return (ILWFormatter<T>)Activator.CreateInstance(typeof(UnmangedFormatter<>).MakeGenericType(typeof(T)));
-            
             //string Type
             if (type == typeof(string))
                 return (ILWFormatter<T>)Activator.CreateInstance(typeof(StringFormatter));
-
+            
             if (type.IsArray)
             {
                 return CreateArrayFormatter<T>();
             }
             else if (type.IsGenericType)
             {
-                // Dictionary Type
-                if (type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
-                    return CreateDictionaryFormatter<T>(type);
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
                 
+                // Dictionary Type
+                if (genericTypeDefinition == typeof(Dictionary<,>))
+                    return CreateDictionaryFormatter<T>(type);
                 // List Type
-                if (type.GetGenericTypeDefinition() == typeof(List<>))
+                if (genericTypeDefinition == typeof(List<>))
                     return CreateListFormatter<T>(type);
+                //Unity Collections Type
+#if UNITY_5_3_OR_NEWER || UNITY_2017_1_OR_NEWER
+                var args = type.GetGenericArguments();
+                if(genericTypeDefinition == typeof(Unity.Collections.NativeArray<>))
+                    return (ILWFormatter<T>)Activator.CreateInstance(typeof(NativeArrayFormatter<>).MakeGenericType(args[0]));
+                if(genericTypeDefinition == typeof(NativeReferenceFormatter<>))
+                    return (ILWFormatter<T>)Activator.CreateInstance(typeof(NativeReferenceFormatter<>).MakeGenericType(args[0]));
+#endif
             }
+            
+            // unmanaged Type
+            if (IsUnmanagedType<T>()) 
+                return (ILWFormatter<T>)Activator.CreateInstance(typeof(UnmangedFormatter<>).MakeGenericType(typeof(T)));
             
             throw new NotImplementedException($"{type.Name} formatter, not supported ");
         }
@@ -92,6 +106,14 @@ namespace LWSerializer
             return (ILWFormatter<T>)Activator.CreateInstance(formatterType);
         }
 
+        private static FORMATTER CreateGenericFormatter<TYPE, FORMATTER>() 
+            where FORMATTER : ILWFormatter<TYPE>
+            where TYPE : unmanaged
+        {
+            Type formatterType;
+            formatterType = typeof(FORMATTER).MakeGenericType(typeof (TYPE));
+            return (FORMATTER)Activator.CreateInstance(formatterType);
+        }
         
         private static ILWFormatter<T> CreateArrayFormatter<T>()
         {

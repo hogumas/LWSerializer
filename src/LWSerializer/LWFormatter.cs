@@ -6,7 +6,6 @@ namespace LWSerializer
 {
     public abstract unsafe class ILWFormatter<T>
     {
-        
         public abstract void Serialize(LwBinaryWriter writer, T value);
         public abstract void DeSerialize(LwBinaryReader reader, out T value);
 
