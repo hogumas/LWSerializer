@@ -121,3 +121,4 @@ var hash = LwUtility.ToXxHash64(bytes);
 
 
 ```
+Unity PackageManager GitUrl - https://github.com/hogumas/LWSerializer.git?path=src
