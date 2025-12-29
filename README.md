@@ -118,3 +118,4 @@ Example of converting a managed object to binary and restoring it by implementin
 
 
 ```
+Unity PackageManager GitUrl - https://github.com/hogumas/LWSerializer.git?path=src
