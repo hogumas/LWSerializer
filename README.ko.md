@@ -91,14 +91,12 @@ var hash = LwUtility.ToXxHash64(bytes);
             
             void ILwSerializable.OnNativeWrite(LwBinaryWriter writer)
             {
-                writer.Write(m_int, m_float);
-                writer.Write(m_arr);
+                writer.Write(m_int, m_float, m_arr);
             }
 
             void ILwSerializable.OnNativeRead(LwBinaryReader reader)
             {
-                reader.Read(out m_int, out m_float);
-                reader.Read(out m_arr);
+                reader.Read(out m_int, out m_float, out m_arr);
             }
         }
         
@@ -106,17 +104,17 @@ var hash = LwUtility.ToXxHash64(bytes);
         {
             using (var writer = new LwBinaryWriter())
             {
-                writer.WriteRef(exampleStruct);
+                writer.Write(exampleStruct);
                 return writer.ToArray(); //or writer.ToPtr()
             }
         }
 
         public static ExampleClass Read(byte[] bytes)
         {
-            ExampleClass result = new ExampleClass();
+            ExampleClass result;
             using (var reader = new LwBinaryReader(bytes))
             {
-                reader.ReadRef(result);
+                reader.Read(out result);
             }
             return result;
         }
