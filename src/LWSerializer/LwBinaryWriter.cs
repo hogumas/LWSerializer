@@ -4,6 +4,7 @@ using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using LWSerializer.Formatters;
 
 namespace LWSerializer
 {
@@ -55,7 +56,7 @@ namespace LWSerializer
         
         #region BeginWrite / EnsureCapacity
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void* BeginWrite(int byteLength) => BeginWrite((uint)byteLength);
+        public void* BeginWrite(int byteLength) => BeginWrite((uint)byteLength);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void* BeginWrite(uint byteLength)
@@ -102,132 +103,15 @@ namespace LWSerializer
         }
         #endregion
         
-        /// <summary> 구조체로 구성된 데이터를 작성합니다 </summary>
-        public void Write<T>(T data) where T : unmanaged
+        public void Write<T>(T data)
         {
-            (*(T*)BeginWrite(Unsafe.SizeOf<T>())) = data;
-        }
-
-        public void Write(ILwSerializable data)
-        {
-            data.OnNativeWrite(this);
+            LWFormatterCache<T>.Formatter.Serialize(this, data);
         }
         
-        /// <summary> 1byte로 채워지는 여유 공간을 작성합니다</summary>
-        public void WritePadding(int byteLen)
+        public void WritePadding(int bytelen)
         {
-            void* destPtr =  BeginWrite(byteLen);
-            Unsafe.InitBlock(destPtr, 0, (uint)byteLen);
+            BeginWrite(bytelen);
         }
-
-        public void WriteSpan<T>(ReadOnlySpan<T> data) where T : unmanaged
-        {
-            int byteLen = Unsafe.SizeOf<T>() * data.Length;
-            Write(data.Length); // 개수 기록
-            void* destPtr = BeginWrite(byteLen);
-            fixed (void* srcPtr = &MemoryMarshal.GetReference(data))
-            {
-                Unsafe.CopyBlock(destPtr, srcPtr, (uint)byteLen);
-            }
-        }
-
-        public void Write<T>(T[] data) where T : unmanaged
-        {
-            int byteLen = Unsafe.SizeOf<T>() * data.Length;
-            Write(data.Length);
-            if (data.Length == 0)
-                return;
-            void* destPtr = BeginWrite(byteLen);
-            fixed (void* srcPtr = &data[0])
-            {
-                Unsafe.CopyBlock(destPtr, srcPtr, (uint)byteLen);
-            }
-        }
-        
-        public void WriteRef<T>(T[] datas) where T : ILwSerializable
-        {
-            Write(datas.Length);
-            if (datas.Length == 0)
-                return;
-            foreach (var data in datas)
-                WriteRef(data);
-        }
-
-        public void WriteRef(ILwSerializable binaryable)
-        {
-            binaryable.OnNativeWrite(this);
-        }
-        
-        public void Write(string str)
-        {
-            if(string.IsNullOrEmpty(str))
-                Write(0);
-            else
-            {
-                int byteCount = Encoding.UTF8.GetByteCount(str);
-                Write(byteCount); 
-                byte* ptr = (byte*)BeginWrite(byteCount);
-                fixed (char* charPtr = str)
-                {
-                    Encoding.UTF8.GetBytes(charPtr, str.Length, ptr, byteCount);
-                }
-            }
-        }
-        
-        public void Write(string[] data)
-        {
-            if (data == null)
-            {
-                Write(0);
-                return;
-            }
-            Write(data.Length);
-            foreach(string str in data)
-                Write(str);
-        }
-        
-        #region Dic
-        public void Write<K, V>(Dictionary<K, V> dic)  
-            where K : unmanaged
-            where V : unmanaged
-        {
-            Write(dic.Count);
-            foreach (var kv in dic)
-                Write(kv.Key, kv.Value);
-        }
-        
-        public void Write<V>(Dictionary<string, V> dic) where V : unmanaged
-        {
-            Write(dic.Count);
-            foreach (var kv in dic)
-            {
-                Write(kv.Key);
-                Write(kv.Value);
-            }
-        }
-        
-        public void WriteRef<K, V>(Dictionary<K, V> dic)  
-            where K : unmanaged
-            where V : ILwSerializable
-        {
-            Write(dic.Count);
-            foreach (var kv in dic)
-            {
-                Write(kv.Key);
-                WriteRef(kv.Value);
-            }
-        }
-        
-        public void WriteRef<V>(Dictionary<string, V> dic) where V : ILwSerializable
-        {
-            Write(dic.Count);
-            foreach (var kv in dic)
-            {
-                Write(kv.Key);
-                WriteRef(kv.Value);
-            }
-        }
-        #endregion
         
         public ulong GetXxHash64(long seed)
         {
@@ -262,47 +146,33 @@ namespace LWSerializer
         
         #region T1....T7
         public void Write<T1, T2>(T1 _1, T2 _2)
-            where T1 : unmanaged
-            where T2 : unmanaged
         {
-            *(T1*)BeginWrite(Unsafe.SizeOf<T1>()) = _1;
-            *(T2*)BeginWrite(Unsafe.SizeOf<T2>()) = _2;
+            Write(_1);
+            Write(_2);
         }
 
         public void Write<T1, T2, T3>(T1 _1, T2 _2, T3 _3) 
-            where T1 : unmanaged 
-            where T2 : unmanaged
-            where T3 : unmanaged
         {
-            *(T1*)BeginWrite(Unsafe.SizeOf<T1>()) = _1;
-            *(T2*)BeginWrite(Unsafe.SizeOf<T2>()) = _2;
-            *(T3*)BeginWrite(Unsafe.SizeOf<T3>()) = _3;
+            Write(_1);
+            Write(_2);
+            Write(_3);
         }
         
         public void Write<T1, T2, T3, T4>(T1 _1, T2 _2, T3 _3, T4 _4) 
-            where T1 : unmanaged 
-            where T2 : unmanaged
-            where T3 : unmanaged
-            where T4 : unmanaged
         {
-            *(T1*)BeginWrite(Unsafe.SizeOf<T1>()) = _1;
-            *(T2*)BeginWrite(Unsafe.SizeOf<T2>()) = _2;
-            *(T3*)BeginWrite(Unsafe.SizeOf<T3>()) = _3;
-            *(T4*)BeginWrite(Unsafe.SizeOf<T4>()) = _4;
+            Write(_1);
+            Write(_2);
+            Write(_3);
+            Write(_4);
         }
 
         public void Write<T1, T2, T3, T4, T5>(T1 _1, T2 _2, T3 _3, T4 _4, T5 _5)
-            where T1 : unmanaged
-            where T2 : unmanaged
-            where T3 : unmanaged
-            where T4 : unmanaged
-            where T5 : unmanaged
         {
-            *(T1*)BeginWrite(Unsafe.SizeOf<T1>()) = _1;
-            *(T2*)BeginWrite(Unsafe.SizeOf<T2>()) = _2;
-            *(T3*)BeginWrite(Unsafe.SizeOf<T3>()) = _3;
-            *(T4*)BeginWrite(Unsafe.SizeOf<T4>()) = _4;
-            *(T5*)BeginWrite(Unsafe.SizeOf<T5>()) = _5;
+            Write(_1);
+            Write(_2);
+            Write(_3);
+            Write(_4);
+            Write(_5);
         }
         public void Write<T1, T2, T3, T4, T5, T6>(T1 _1, T2 _2, T3 _3, T4 _4, T5 _5, T6 _6)
             where T1 : unmanaged
@@ -312,29 +182,22 @@ namespace LWSerializer
             where T5 : unmanaged
             where T6 : unmanaged
         {
-            *(T1*)BeginWrite(Unsafe.SizeOf<T1>()) = _1;
-            *(T2*)BeginWrite(Unsafe.SizeOf<T2>()) = _2;
-            *(T3*)BeginWrite(Unsafe.SizeOf<T3>()) = _3;
-            *(T4*)BeginWrite(Unsafe.SizeOf<T4>()) = _4;
-            *(T5*)BeginWrite(Unsafe.SizeOf<T5>()) = _5;
-            *(T6*)BeginWrite(Unsafe.SizeOf<T6>()) = _6;
+            Write(_1);
+            Write(_2);
+            Write(_3);
+            Write(_4);
+            Write(_5);
+            Write(_6);
         }
         public void Write<T1, T2, T3, T4, T5, T6, T7>(T1 _1, T2 _2, T3 _3, T4 _4, T5 _5, T6 _6, T7 _7)
-            where T1 : unmanaged
-            where T2 : unmanaged
-            where T3 : unmanaged
-            where T4 : unmanaged
-            where T5 : unmanaged
-            where T6 : unmanaged
-            where T7 : unmanaged
         {
-            *(T1*)BeginWrite(Unsafe.SizeOf<T1>()) = _1;
-            *(T2*)BeginWrite(Unsafe.SizeOf<T2>()) = _2;
-            *(T3*)BeginWrite(Unsafe.SizeOf<T3>()) = _3;
-            *(T4*)BeginWrite(Unsafe.SizeOf<T4>()) = _4;
-            *(T5*)BeginWrite(Unsafe.SizeOf<T5>()) = _5;
-            *(T6*)BeginWrite(Unsafe.SizeOf<T6>()) = _6;
-            *(T7*)BeginWrite(Unsafe.SizeOf<T7>()) = _7;
+            Write(_1);
+            Write(_2);
+            Write(_3);
+            Write(_4);
+            Write(_5);
+            Write(_6);
+            Write(_7);
         }
         #endregion
     }

@@ -7,18 +7,8 @@ namespace LWSerializer
     {
         private static LwBinaryWriter _sharedWriter = new LwBinaryWriter();
         
-        
-        /// <summary> ILwSerializable 객체를 바이너리 배열로 반환합니다. </summary>
-        public static byte[] ToRef(ILwSerializable serializable)
-        {
-            _sharedWriter.SetLength(0);
-            _sharedWriter.WriteRef(serializable);
-            var result = _sharedWriter.ToArray();
-            return result;
-        }
-        
-        /// <summary> ILwSerializable 객체를 바이너리 배열로 반환합니다. </summary>
-        public static byte[] To<T>(T serializable) where T : unmanaged
+        /// <summary>  객체를 바이너리 배열로 반환합니다. </summary>
+        public static byte[] To<T>(T serializable)
         {
             _sharedWriter.SetLength(0);
             _sharedWriter.Write(serializable);
@@ -26,42 +16,10 @@ namespace LWSerializer
             return result;
         }
         
-        /// <summary> ILwSerializable 객체를 바이너리 배열로 반환합니다. </summary>
-        public static byte[] To(string serializable)
-        {
-            _sharedWriter.SetLength(0);
-            _sharedWriter.Write(serializable);
-            var result = _sharedWriter.ToArray();
-            return result;
-        }
-        
-        
-        /// <summary> 바이너리 배열을 ILwSerializable 객체로 반환합니다</summary>
-        public static T FromRef<T>(byte[] bytes) where T : ILwSerializable
-        {
-            T result = Activator.CreateInstance<T>();
-            using (var reader = new LwBinaryReader(bytes))
-            {
-                reader.ReadRef(result);
-            }
-            return result;
-        }
-        
-        /// <summary> 바이너리 배열을 ILwSerializable 객체로 반환합니다</summary>
-        public static T From<T>(byte[] bytes) where T : unmanaged
+        /// <summary> 바이너리 배열을  객체로 반환합니다</summary>
+        public static T From<T>(byte[] bytes)
         {
             T result = default;
-            using (var reader = new LwBinaryReader(bytes))
-            {
-                reader.Read(out result);
-            }
-            return result;
-        }
-        
-        /// <summary> 바이너리 배열을 ILwSerializable 객체로 반환합니다</summary>
-        public static string From(byte[] bytes)
-        {
-            string result = default;
             using (var reader = new LwBinaryReader(bytes))
             {
                 reader.Read(out result);
@@ -86,7 +44,7 @@ namespace LWSerializer
             ulong result;
             using (var writer = new LwBinaryWriter())
             {
-                writer.WriteRef(serializable);
+                writer.Write(serializable);
                 result = writer.GetXxHash64(seed);
             }
             return result;

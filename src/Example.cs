@@ -1,4 +1,5 @@
-﻿using LWSerializer;
+﻿using System.Collections.Generic;
+using LWSerializer;
 
 namespace LWBinarySerializer
 {
@@ -42,14 +43,12 @@ namespace LWBinarySerializer
             
             void ILwSerializable.OnNativeWrite(LwBinaryWriter writer)
             {
-                writer.Write(m_int, m_float);
-                writer.Write(m_arr);
+                writer.Write(m_int, m_float, m_arr);
             }
 
             void ILwSerializable.OnNativeRead(LwBinaryReader reader)
             {
-                reader.Read(out m_int, out m_float);
-                reader.Read(out m_arr);
+                reader.Read(out m_int, out m_float, out m_arr);
             }
         }
         
@@ -57,17 +56,39 @@ namespace LWBinarySerializer
         {
             using (var writer = new LwBinaryWriter())
             {
-                writer.WriteRef(exampleStruct);
+                writer.Write(exampleStruct);
                 return writer.ToArray(); //or writer.ToPtr()
             }
         }
 
         public static ExampleClass Read(byte[] bytes)
         {
-            ExampleClass result = new ExampleClass();
+            ExampleClass result;
             using (var reader = new LwBinaryReader(bytes))
             {
-                reader.ReadRef(result);
+                reader.Read(out result);
+            }
+            return result;
+        }
+    }
+
+    public static class Example_Dictionary
+    {
+        public static byte[] Write(Dictionary<string, string> dictionary)
+        {
+            using (var writer = new LwBinaryWriter())
+            {
+                writer.Write(dictionary);
+                return writer.ToArray(); //or writer.ToPtr()
+            }
+        }
+
+        public static Dictionary<string, string> Read(byte[] bytes)
+        {
+            Dictionary<string, string> result;
+            using (var reader = new LwBinaryReader(bytes))
+            {
+                reader.Read(out result);
             }
             return result;
         }

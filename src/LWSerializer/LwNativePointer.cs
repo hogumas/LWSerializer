@@ -1,7 +1,26 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace LWSerializer
 {
+    public readonly unsafe struct LwNativeMemory<T> where T : unmanaged
+    {
+        public readonly LwNativePointer<T> Value;
+        public readonly int Length;
+        
+        public LwNativeMemory(LwNativePointer<T> value, int length)
+        {
+            this.Value =  value;
+            this.Length = length;
+        }
+        
+        public LwNativeMemory(Span<T> value, int length)
+        {
+            this.Value =  new LwNativePointer<T>(Unsafe.AsPointer(ref value.GetPinnableReference()));
+            this.Length = length;
+        }
+    }
+    
     public readonly unsafe struct LwNativePointer<T> where T : unmanaged
     {
         public readonly T* Value;

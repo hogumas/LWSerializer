@@ -1,6 +1,6 @@
 {
   "name": "com.hoguma.fwserializer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "FWSerializer",
   "description": ".net 환경에서 값을 복사하여 바이너리로 변경하는 직렬화 라이브러리입니다.",
   "unity": "2021.3",
